@@ -11,12 +11,13 @@ process index {
     input:
     path fasta from fasta_ch
     path gtf from gtf_ch
-    val index from genome_ch
+    val name from genome_ch
 
 
     script:
     """
-    echo genome has $fasta file and $gtf file in the new directory $index
+    echo STAR --runMode genomeGenerate --genomeDir $name --genomeFastaFiles $fasta \
+    --sjdbGTFfile $gtf --runThreadN $task.cpus
     """
 
 

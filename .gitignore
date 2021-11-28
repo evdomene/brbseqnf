@@ -7,3 +7,10 @@ desktop.ini
 .Spotlight-V100
 .Trashes
 ._*
+.nextflow*
+work/
+data/
+results/
+testing/
+testing*
+*.pyc

@@ -1,8 +1,7 @@
 #!/bin/bash
 #SBATCH --time=00:10:00
 #SBATCH --partition=test
-#SBATCH --account=project_2003682
-
+#SBATCH --account=project_2002552
 
 export TMPDIR=$PWD
 export SINGULARITY_TMPDIR=$PWD
@@ -14,4 +13,4 @@ module load bioconda
 source activate nextflow
 
 # Nextflow command here
-nextflow run poolseq.nf -profile singularity  
+nextflow run poolseq.nf -resume -profile singularity

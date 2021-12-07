@@ -13,4 +13,4 @@ module load bioconda
 source activate nextflow
 
 # Nextflow command here
-nextflow run poolseq.nf -resume -profile singularity
+nextflow run poolseq.nf -resume -profile slurm

@@ -1,6 +1,9 @@
 #!/bin/bash
-#SBATCH --time=00:10:00
-#SBATCH --partition=test
+#SBATCH -o std_%J.out
+#SBATCH -e std_%J.err
+#SBATCH --time=04:00:00
+#SBATCH --mem=4GB
+#SBATCH --partition=small
 #SBATCH --account=project_2002552
 
 export TMPDIR=$PWD

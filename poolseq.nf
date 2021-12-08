@@ -2,18 +2,19 @@
 params.genomedir=null
 params.fasta=null
 params.barcodes=null
-params.results=results
+params.results="results"
 
 fasta_ch = Channel.fromPath("$params.genomedir/*.fa")
 barcodes_ch = Channel.fromPath("$params.barcodes")
 
 Channel
+    .fromFilePairs("$params.fasta/*R{1,2}*")
+    .into {R2_ch ; R1_ch}
+
+Channel
     .fromPath("$params.genomedir/*.gtf")
     .into {gtf_ch; gtf_ch2}
 
-Channel
-    .fromFilePairs("$params.fasta/S*R{1,2}*", checkIfExists: true )
-    .into {R2_ch ; R1_ch}
 
 process index {
 
@@ -34,23 +35,20 @@ process index {
 }
 
 process alignment {
-
-    tag "Alignment of $sample_id"
-    
+      
     input:
-    path index from genomeindx_ch
-    tuple val(sample_id),file(reads) from R2_ch
+    tuple val(sample_id), file(reads) from R2_ch
+    val index from genomeindx_ch.first()    
     
-
     output:
     tuple val(sample_id), file("${sample_id}*.bam") into bam_ch
 
-    script:
+    script:  
     """
     STAR --genomeDir $index  \
     --genomeLoad LoadAndRemove \
     --readFilesIn ${reads[1]} --readFilesCommand zcat \
-    --outFileNamePrefix $sample_id \
+    --outFileNamePrefix ${sample_id} \
     --outFilterMultimapNmax 1 \
     --outSAMtype BAM Unsorted \
     --runThreadN $task.cpus
@@ -59,23 +57,36 @@ process alignment {
 }
 
 process CreateDGEMatrix {
-
-    tag "Counting of $sample_id"
     
-    input:
-    path barcodes from barcodes_ch
-    tuple val(sample_id), file(reads), file(bam) from R1_ch.join(bam_ch)
-    val gtf from gtf_ch2
+  input:
+  val barcodes from barcodes_ch.first()
+  tuple val(sample_id), file(reads), file(bam) from R1_ch.join(bam_ch)
+  val gtf from gtf_ch2.first()
 
-    output:
-    path 'dir' into pooldir_ch
+  output:
+  tuple val(sample_id), file("${sample_id}/*") into matrices_ch
 
-    script:
-    """
-    mkdir dir
-    echo CreateDGEMatrix -f ${reads[0]} -b $bam -c $barcodes -gtf $gtf -p BU? -UMI 8 -o dir
-    """
+  script:
+  """
+  java -jar /Brbseq/BrbseqTools.jar CreateDGEMatrix -f ${reads[0]} -b $bam -c $barcodes -gtf $gtf -p BU? -UMI 8 -o ${sample_id}
+  """
 
 }
 
 
+
+process RenameHeaders {
+    publishDir "${params.results}", mode:'copy', saveAs:{filename -> "${sample_id}_$filename"}
+  
+    input:
+    tuple val(sample_id), file(dgematrices) from matrices_ch
+
+    output:
+    file(dgematrices) into results_ch
+
+    script:
+    """
+    sed -i "1 s/iO_[0-9]/${sample_id}_&/g" $dgematrices
+    """
+
+}

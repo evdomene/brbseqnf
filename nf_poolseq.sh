@@ -3,6 +3,7 @@
 #SBATCH -e std_%J.err
 #SBATCH --time=04:00:00
 #SBATCH --mem=4GB
+#SBATCH --cpus-per-task=2
 #SBATCH --partition=small
 #SBATCH --account=project_2002552
 

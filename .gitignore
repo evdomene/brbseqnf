@@ -7,6 +7,8 @@ desktop.ini
 .Spotlight-V100
 .Trashes
 ._*
+
+# Nextflow
 .nextflow*
 work/
 data/
@@ -16,4 +18,5 @@ testing*
 *.pyc
 *.so
 std_*
+
 
